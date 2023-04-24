@@ -49,15 +49,17 @@ def main():
     for path in relative_paths:
         file_name = path.split('/')[-1]
         print(f'Retrieving {file_name}')
-        with open('RAD\\' + file_name, 'wb') as f:
-            r = requests.get(f'{main_page}/{cycle}/{path}')
-            validate_code(r)
-            f.write(r.content)
+        download_if_exists(cycle, path, file_name)
         print('Done!')
-    
-    input()
 
-def validate_code(r):
+def download_if_exists(cycle, path, file_name):
+    r = requests.get(f'{main_page}/{cycle}/{path}')
+    if r.status_code != requests.codes.ok:
+        return
+    with open('RAD\\' + file_name, 'wb') as f:
+        f.write(r.content)
+
+def validate_code(r: requests.Response):
     if r.status_code != requests.codes.ok:
         sys.exit('Website returned an incorrect response')
 
