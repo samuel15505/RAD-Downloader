@@ -1,7 +1,7 @@
 import sys
 import requests
 import re
-from os import mkdir
+from os import mkdir, rename
 from shutil import rmtree
 import datetime
 from bs4 import BeautifulSoup
@@ -17,12 +17,16 @@ def get_airac_cycle():
     return cycle
 
 def main():
-    rmtree('RAD')
     try:
         mkdir('RAD')
-    except OSError as error:
-        print(error)
-        exit()
+    except FileExistsError:
+        try:
+            rmtree('RAD_backup')
+        except FileNotFoundError:
+            pass
+        rename('RAD', 'RAD_backup')
+        print('Backed up current cycle.')
+        mkdir('RAD')
     error_message = 'Cycle must be 4 digits, try again.'
     while True:
         cycle = input('Enter desired cycle or leave blank for current cycle: ')
@@ -49,19 +53,33 @@ def main():
     for path in relative_paths:
         file_name = path.split('/')[-1]
         print(f'Retrieving {file_name}')
-        download_if_exists(cycle, path, file_name)
+        try:
+            download_if_exists(cycle, path, file_name)
+        except RemoteFileNotFound as error:
+            print('Remote file not found, aborting.')
+            print('Restoring backup if it exists...')
+            rmtree('RAD')
+            try:
+                rename('RAD_backup', 'RAD')
+            except FileNotFoundError:
+                print('Backup not restored as none exists.')
+                raise error
         print('Done!')
 
 def download_if_exists(cycle, path, file_name):
     r = requests.get(f'{main_page}/{cycle}/{path}')
     if r.status_code != requests.codes.ok:
-        return
-    with open('RAD\\' + file_name, 'wb') as f:
+        raise RemoteFileNotFound
+    with open('RAD//' + file_name, 'wb') as f:
         f.write(r.content)
 
 def validate_code(r: requests.Response):
     if r.status_code != requests.codes.ok:
         sys.exit('Website returned an incorrect response')
+
+class RemoteFileNotFound(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)    
 
 if __name__ == '__main__':
     main()
