@@ -14,7 +14,7 @@ python -m pip install requests bs4
 
 Run main.py.
 
-When asked what cycle to use, leave the prompt empty to use current AIRAC or enter one of your choosing (eg. 2204).
+When asked what cycle to use, leave the prompt empty to use current AIRAC or enter one of your choosing (eg. 2304).
 
 *Eurocontrol removes RADs from cycles over 7 months old, if you are getting errors check the cycle you are requesting.*
 
