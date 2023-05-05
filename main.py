@@ -1,9 +1,10 @@
-import sys
-import requests
+import datetime
 import re
+import sys
 from os import mkdir, rename
 from shutil import rmtree
-import datetime
+
+import requests
 from bs4 import BeautifulSoup
 
 main_page = 'https://www.nm.eurocontrol.int/RAD'
